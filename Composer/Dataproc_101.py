@@ -25,9 +25,9 @@ with models.DAG('Dataproc_101',
         region='europe-west1',
         zone='europe-west1-d',
         project_id='dataops-271513',
-        num_workers=1,
+        num_workers=2,
         num_masters=1,
-        auto_delete_ttl=120
+        auto_delete_ttl=1200
     )
 
     t1
