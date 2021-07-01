@@ -21,7 +21,10 @@ with models.DAG('Dataproc_101',
 
     t1 = DataprocClusterCreateOperator(
         task_id='create_dataproc',
-        cluster_name='test',
+        cluster_name='test-dataproc-cluster',
+        region='europe-west1',
+        zone='europe-west1-d',
+        project_id='dataops-271513',
         num_workers=1,
         num_masters=1,
         auto_delete_ttl=120
