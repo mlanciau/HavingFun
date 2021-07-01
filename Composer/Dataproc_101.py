@@ -14,9 +14,9 @@ default_dag_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-with models.DAG('CI_CD_test',
+with models.DAG('Dataproc_101',
     schedule_interval=None,
-    description='Used for setting up the CI CD workflow',
+    description='Used for testing security / service account for Dataproc Operator',
     default_args=default_dag_args) as dag:
 
     t1 = DataprocClusterCreateOperator(
