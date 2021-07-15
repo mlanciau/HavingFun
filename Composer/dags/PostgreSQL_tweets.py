@@ -47,7 +47,7 @@ with models.DAG('PostgreSQL_tweets',
         python_callable=importTweet,
         op_args=[consumer_key, consumer_secret, access_token, access_token_secret],
         requirements=["tweepy"],
-        system_site_packages=False
+        system_site_packages=True
     )
 
     hourly_tweepy_API_call
