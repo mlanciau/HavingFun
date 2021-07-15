@@ -14,16 +14,16 @@ default_dag_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-def importTweet():
+consumer_key = Variable.get("consumer_key")
+consumer_secret = Variable.get("consumer_secret")
+access_token = Variable.get("access_token")
+access_token_secret = Variable.get("access_token_secret")
+
+def importTweet(consumer_key, consumer_secret, access_token, access_token_secret):
     import tweepy
-    import airflow
-    from airflow.models import Variable
 
     key_word = 'postgres'
-    consumer_key = Variable.get("consumer_key")
-    consumer_secret = Variable.get("consumer_secret")
-    access_token = Variable.get("access_token")
-    access_token_secret = Variable.get("access_token_secret")
+
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
@@ -45,6 +45,7 @@ with models.DAG('PostgreSQL_tweets',
     hourly_tweepy_API_call = PythonVirtualenvOperator(
         task_id='hourly-tweepy-API-call',
         python_callable=importTweet,
+        op_args=[consumer_key, consumer_secret, access_token, access_token_secret],
         requirements=["tweepy"],
         system_site_packages=False
     )
