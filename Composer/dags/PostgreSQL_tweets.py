@@ -16,6 +16,8 @@ default_dag_args = {
 
 def importTweet():
     import tweepy
+    import airflow
+    from airflow.models import Variable
 
     key_word = 'postgres'
     consumer_key = Variable.get("consumer_key")
