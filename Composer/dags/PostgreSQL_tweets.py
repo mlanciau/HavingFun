@@ -5,6 +5,7 @@ from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.utils.dates import days_ago
 
+import json
 import time
 import tweepy
 from datetime import timedelta
