@@ -5,6 +5,7 @@ from airflow.models import Variable
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.utils.dates import days_ago
 
+import json
 import tweepy
 from datetime import timedelta
 
@@ -32,7 +33,7 @@ def importTweet(consumer_key, consumer_secret, access_token, access_token_secret
     data = list()
 
     for tweet in public_tweets:
-        data.append(tweet)
+        data.append(tweet._json)
     return data
 
 
