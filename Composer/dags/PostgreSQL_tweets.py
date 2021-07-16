@@ -1,6 +1,6 @@
 import airflow
 from airflow import models
-from airflow.models import Variable
+from airflow.models import Variable, TaskInstance
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.utils.dates import days_ago
@@ -52,7 +52,7 @@ with models.DAG('PostgreSQL_tweets',
 
     load_file_to_GCS = LocalFilesystemToGCSOperator(
         task_id='load-file-to-GCS',
-        src = task_instance.xcom_pull(task_ids='hourly-tweepy-API-call'),
+        src = {{ task_instance.xcom_pull(task_ids='hourly-tweepy-API-call') }},
         dst = f'{key_word}/{{ ds }}',
         bucket = 'raw_data_dev'
     )
