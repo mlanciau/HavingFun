@@ -53,7 +53,7 @@ with models.DAG('PostgreSQL_tweets',
 
     load_file_to_GCS = LocalFilesystemToGCSOperator(
         task_id='load-file-to-GCS',
-        src = '{{ ti.xcom_pull(task_ids='hourly-tweepy-API-call') }}',
+        src = '{{ ti.xcom_pull(task_ids=\'hourly-tweepy-API-call\') }}',
         dst = key_word + '/{{ ds }}/',
         bucket = 'raw_data_dev'
     )
