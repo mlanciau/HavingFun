@@ -1,11 +1,11 @@
 import airflow
-from airflow import DAG
 from airflow import models
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
+from airflow.providers.google.cloud.transfers import LocalFilesystemToGCSOperator
 from airflow.utils.dates import days_ago
 
-import json
+import time
 import tweepy
 from datetime import timedelta
 
@@ -22,19 +22,18 @@ access_token = Variable.get("access_token")
 access_token_secret = Variable.get("access_token_secret")
 
 
-def importTweet(consumer_key, consumer_secret, access_token, access_token_secret):
-    key_word = 'postgres'
-
+def importTweet(key_word, consumer_key, consumer_secret, access_token, access_token_secret):
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
-    public_tweets = api.search(key_word, count=10) # TODO add since_id
+    public_tweets = api.search(key_word, count=100) # TODO add since_id
 
-    data = list()
+    filename = f"tweet_{time.time()}.json"
 
-    for tweet in public_tweets:
-        data.append(tweet._json)
-    return data
+    with open(filename, "w") as jsonFile:
+        for tweet in public_tweets:
+            json.dump(tweet._json, jsonFile)
+    return filename
 
 
 with models.DAG('PostgreSQL_tweets',
@@ -43,10 +42,19 @@ with models.DAG('PostgreSQL_tweets',
     catchup=False,
     default_args=default_dag_args) as dag:
 
+    key_word = 'postgres'
+
     hourly_tweepy_API_call = PythonOperator(
-        task_id='hourly-tweepy-API-call',
-        python_callable=importTweet,
-        op_args=[consumer_key, consumer_secret, access_token, access_token_secret],
+        task_id = 'hourly-tweepy-API-call',
+        python_callable = importTweet,
+        op_args = [key_word, consumer_key, consumer_secret, access_token, access_token_secret],
     )
 
-    hourly_tweepy_API_call
+    load_file_to_GCS = LocalFilesystemToGCSOperator(
+        task_id='load-file-to-GCS',
+        src = task_instance.xcom_pull(task_ids='hourly-tweepy-API-call'),
+        dst = f'{key_word}/{{ ds }}',
+        bucket = 'raw_data_dev'
+    )
+
+    hourly_tweepy_API_call >> load_file_to_GCS
