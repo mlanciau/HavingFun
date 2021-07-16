@@ -2,9 +2,10 @@ import airflow
 from airflow import DAG
 from airflow import models
 from airflow.models import Variable
-from airflow.operators.python import PythonVirtualenvOperator
+from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.utils.dates import days_ago
 
+import tweepy
 from datetime import timedelta
 
 default_dag_args = {
@@ -19,9 +20,8 @@ consumer_secret = Variable.get("consumer_secret")
 access_token = Variable.get("access_token")
 access_token_secret = Variable.get("access_token_secret")
 
-def importTweet(consumer_key, consumer_secret, access_token, access_token_secret):
-    import tweepy
 
+def importTweet(consumer_key, consumer_secret, access_token, access_token_secret):
     key_word = 'postgres'
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -42,12 +42,10 @@ with models.DAG('PostgreSQL_tweets',
     catchup=False,
     default_args=default_dag_args) as dag:
 
-    hourly_tweepy_API_call = PythonVirtualenvOperator(
+    hourly_tweepy_API_call = PythonOperator(
         task_id='hourly-tweepy-API-call',
         python_callable=importTweet,
         op_args=[consumer_key, consumer_secret, access_token, access_token_secret],
-        requirements=["tweepy"],
-        system_site_packages=True
     )
 
     hourly_tweepy_API_call
