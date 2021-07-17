@@ -5,6 +5,7 @@ from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.utils.dates import days_ago
 
+import os
 import json
 import time
 import tweepy
@@ -28,6 +29,8 @@ def importTweet(key_word, consumer_key, consumer_secret, access_token, access_to
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
     public_tweets = api.search(key_word, count=100) # TODO add since_id
+
+    os.makedirs(f"/home/airflow/gcs/data/{key_word})
 
     filename = f"/home/airflow/gcs/data/{key_word}/tweet_{time.time() * 1000}.json"
 
