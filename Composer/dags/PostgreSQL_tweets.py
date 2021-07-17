@@ -30,7 +30,7 @@ def importTweet(key_word, consumer_key, consumer_secret, access_token, access_to
     api = tweepy.API(auth)
     public_tweets = api.search(key_word, count=100) # TODO add since_id
 
-    os.makedirs(f"/home/airflow/gcs/data/{key_word}")
+    os.makedirs(f"/home/airflow/gcs/data/{key_word}", exist_ok = True)
     filename = f"{key_word}/tweet_{time.time() * 1000000}.json"
 
     with open(f"/home/airflow/gcs/data/{filename}", "w") as jsonFile:
