@@ -1,9 +1,15 @@
 # HavingFun
- Just Having Fun
+This is a demo project
 
-The code here is being replicated to Google Cloud Source Repositories
-Then we have Cloud Build Triggers to :
- * copy Airflow DAGs to Dev Composer bucket
-
+Component being integrated
+* Cloud Build
+* GCS
+* Composer
 
 Work in Progress
+* Cloud Function
+* Dataflow
+* BigQuery
+* Dataproc
+* Pub/Sub
+* Cloud SQL 
