@@ -2,7 +2,7 @@ import airflow
 from airflow import models
 from airflow.models import Variable, TaskInstance
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
-from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
+from airflow.providers.google.cloud.transfers.gcs_to_gcs import GCSToGCSOperator
 from airflow.utils.dates import days_ago
 
 import os
@@ -32,9 +32,9 @@ def importTweet(key_word, consumer_key, consumer_secret, access_token, access_to
 
     os.makedirs(f"/home/airflow/gcs/data/{key_word}")
 
-    filename = f"/home/airflow/gcs/data/{key_word}/tweet_{time.time() * 1000}.json"
+    filename = f"{key_word}/tweet_{time.time() * 1000000}.json"
 
-    with open(filename, "w") as jsonFile:
+    with open(f"/home/airflow/gcs/data/"{filename}, "w") as jsonFile:
         for tweet in public_tweets:
             json.dump(tweet._json, jsonFile)
             jsonFile.write('\n')
@@ -47,7 +47,7 @@ with models.DAG('PostgreSQL_tweets',
     catchup=False,
     default_args=default_dag_args) as dag:
 
-    key_word = 'postgres'
+    key_word = 'postgres' # TODO change it to a list of key_word
 
     hourly_tweepy_API_call = PythonOperator(
         task_id = 'hourly-tweepy-API-call',
@@ -55,11 +55,13 @@ with models.DAG('PostgreSQL_tweets',
         op_args = [key_word, consumer_key, consumer_secret, access_token, access_token_secret],
     )
 
-    load_file_to_GCS = LocalFilesystemToGCSOperator(
+    load_file_to_GCS = GCSToGCSOperator(
         task_id='load-file-to-GCS',
-        src = '{{ ti.xcom_pull(task_ids=\'hourly-tweepy-API-call\') }}',
-        dst = key_word + '/{{ ds }}/',
-        bucket = 'raw_data_dev'
+        source_bucket = 'europe-west1-composer-dev-445e5e40-bucket'
+        source_object = '{{ ti.xcom_pull(task_ids=\'hourly-tweepy-API-call\') }}',
+        destination_object = key_word + '/{{ ds }}/',
+        destination_bucket = 'raw_data_dev',
+        move_object = True
     )
 
     hourly_tweepy_API_call >> load_file_to_GCS
