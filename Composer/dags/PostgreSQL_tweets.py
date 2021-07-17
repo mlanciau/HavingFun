@@ -58,7 +58,7 @@ with models.DAG('PostgreSQL_tweets',
         task_id='load-file-to-GCS',
         source_bucket = 'europe-west1-composer-dev-445e5e40-bucket',
         source_object = '{{ ti.xcom_pull(task_ids=\'hourly-tweepy-API-call\') }}',
-        destination_object = key_word + '/{{ ds }}/',
+        destination_object = '{{ ti.xcom_pull(task_ids=\'hourly-tweepy-API-call\') }}',
         destination_bucket = 'raw_data_dev',
         move_object = True
     )
