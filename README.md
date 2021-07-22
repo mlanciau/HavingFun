@@ -5,11 +5,11 @@ Component being integrated
 * Cloud Build
 * GCS
 * Composer
-
-Work in Progress
-* Cloud Function
 * Dataflow
-* BigQuery
 * Dataproc
+* Cloud SQL
+
+Waiting
+* Cloud Function
+* BigQuery
 * Pub/Sub
-* Cloud SQL 

@@ -47,7 +47,7 @@ with models.DAG('Dataproc_101',
 #        task_id='pyspark_job',
 #        cluster_name='test-dataproc-cluster',
 #        project_id='dev-project-304310',
-#        main='',
+#        main='gs://europe-west1-composer-dev-445e5e40-bucket/dataproc/',
 #    )
 
     delete_dataproc_task = DataprocClusterDeleteOperator(
