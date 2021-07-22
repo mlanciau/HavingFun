@@ -44,6 +44,7 @@ with models.DAG('PostgreSQL_tweets',
     schedule_interval='@hourly',
     description='Gather tweets about PostgreSQL',
     catchup=False,
+    max_active_runs=1,
     default_args=default_dag_args) as dag:
 
     key_word = 'postgres' # TODO change it to a list of key_word

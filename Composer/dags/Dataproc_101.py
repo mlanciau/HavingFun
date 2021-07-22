@@ -4,13 +4,9 @@ from airflow import models
 from airflow.models import Variable
 
 from airflow.utils.dates import days_ago
-from airflow.operators.python_operator import PythonOperator
-from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator
+from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator, DataprocClusterDeleteOperator, DataProcHiveOperator, DataProcPySparkOperator
 
 from datetime import timedelta
-from pprint import pprint
-
-Variable.set("task_list", [1, 2, 3], serialize_json=True)
 
 default_dag_args = {
     'start_date': days_ago(1),
@@ -23,42 +19,41 @@ with models.DAG('Dataproc_101',
     schedule_interval=None,
     description='Used for testing security / service account for Dataproc Operator',
     catchup=False,
+    max_active_runs=1,
     default_args=default_dag_args) as dag:
-
-    def print_context(ds, **kwargs):
-        pprint(kwargs)
-        print(ds)
-        return Variable.get("task_list", deserialize_json=True)
 
     create_dataproc_task = DataprocClusterCreateOperator(
         task_id='create_dataproc',
         cluster_name='test-dataproc-cluster',
         region='europe-west1',
         zone='europe-west1-d',
-        project_id='dataops-271513',
+        project_id='dev-project-304310',
+        init_actions_uris=['gs://goog-dataproc-initialization-actions-europe-west1/cloud-sql-proxy/cloud-sql-proxy.sh'],
+        metadata='hive-metastore-instance=dev-project-304310:europe-west1:pg-hive-metadata',
+        properties='hive:hive.metastore.warehouse.dir=gs://raw_data_dev/hive-warehouse',
         num_workers=2,
         num_masters=1,
-        auto_delete_ttl=1200
+        auto_delete_ttl=1200,
     )
 
-    print_python_context = PythonOperator(
-        task_id='print_the_context',
-        provide_context=True,
-        python_callable=print_context
+    hive_task = DataProcHiveOperator(
+        task_id='hive_query',
+        cluster_name='test-dataproc-cluster',
+        project_id='dev-project-304310',
+        query='SHOW TABLES'
     )
 
-    def print_id(ds, **kwargs):
-        pprint(kwargs)
-        return(ds)
+    pyspark_task = DataProcPySparkOperator(
+        task_id='pyspark_job',
+        cluster_name='test-dataproc-cluster',
+        project_id='dev-project-304310',
+    )
 
-    task_list = Variable.get("task_list", deserialize_json=True)
-
-    for task in task_list:
-        generated_task = PythonOperator(
-            task_id=f'print_the_context_{task}',
-            provide_context=True,
-            python_callable=print_id
-        )
-        print_python_context >> generated_task
+    delete_dataproc_task = DataprocClusterDeleteOperator(
+        task_id='delete_dataproc',
+        cluster_name='test-dataproc-cluster',
+        project_id='dev-project-304310',
+        region='europe-west1',
+    )
 
     create_dataproc_task
