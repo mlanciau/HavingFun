@@ -43,11 +43,12 @@ with models.DAG('Dataproc_101',
         query='SHOW TABLES'
     )
 
-    pyspark_task = DataProcPySparkOperator(
-        task_id='pyspark_job',
-        cluster_name='test-dataproc-cluster',
-        project_id='dev-project-304310',
-    )
+#    pyspark_task = DataProcPySparkOperator(
+#        task_id='pyspark_job',
+#        cluster_name='test-dataproc-cluster',
+#        project_id='dev-project-304310',
+#        main='',
+#    )
 
     delete_dataproc_task = DataprocClusterDeleteOperator(
         task_id='delete_dataproc',
@@ -56,4 +57,4 @@ with models.DAG('Dataproc_101',
         region='europe-west1',
     )
 
-    create_dataproc_task
+    create_dataproc_task >> hive_task >> delete_dataproc_task
