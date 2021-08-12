@@ -89,9 +89,9 @@ with models.DAG('Bitcoin_fun',
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
 
-    trigger_bitcoin_dag = TriggerDagRunOperator(
-        task_id='trigger_bitcoin_dag',
-        trigger_dag_id='Bitcoin_fun',
-    )
+    # trigger_bitcoin_dag = TriggerDagRunOperator(
+    #     task_id='trigger_bitcoin_dag',
+    #     trigger_dag_id='Bitcoin_fun',
+    # )
 
     # load_file_to_GCS >> trigger_bitcoin_dag
