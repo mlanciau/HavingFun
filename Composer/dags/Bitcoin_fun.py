@@ -20,7 +20,7 @@ default_dag_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-NBR_OF_TASK = 10
+NBR_OF_STEP = 5
 NBR_OF_FILE = 10
 NBR_OF_LINE = 100000
 
@@ -66,21 +66,21 @@ with models.DAG('Bitcoin_fun',
     previous_task_1 = None
     previous_task_2 = None
 
-    for nbr_task in range(NBR_OF_TASK):
+    for step_nbr in range(NBR_OF_STEP):
         generate_bitcoin_key_1 = PythonOperator(
-            task_id = f'generate-bitcoin-key-{nbr_task}',
+            task_id = f'generate-bitcoin-key-{step_nbr}',
             python_callable = generate_key,
         )
 
         generate_bitcoin_key_2 = PythonOperator(
-            task_id = f'generate-bitcoin-key-{nbr_task + NBR_OF_TASK}',
+            task_id = f'generate-bitcoin-key-{step_nbr + NBR_OF_STEP}',
             python_callable = generate_key,
         )
 
         if nbr_task == 0:
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
-        elif nbr_task == (NBR_OF_TASK - 1):
+        elif nbr_task == (NBR_OF_STEP - 1):
             previous_task_1 >> generate_bitcoin_key_1 >> load_file_to_GCS
             previous_task_2 >> generate_bitcoin_key_2 >> load_file_to_GCS
         else:
