@@ -77,10 +77,10 @@ with models.DAG('Bitcoin_fun',
             python_callable = generate_key,
         )
 
-        if nbr_task == 0:
+        if step_nbr == 0:
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
-        elif nbr_task == (NBR_OF_STEP - 1):
+        elif step_nbr == (NBR_OF_STEP - 1):
             previous_task_1 >> generate_bitcoin_key_1 >> load_file_to_GCS
             previous_task_2 >> generate_bitcoin_key_2 >> load_file_to_GCS
         else:
