@@ -20,7 +20,7 @@ default_dag_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-NBR_OF_STEP = 5
+NBR_OF_STEP = 6
 NBR_OF_FILE = 10
 NBR_OF_LINE = 100000
 
