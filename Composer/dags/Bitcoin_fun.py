@@ -47,7 +47,7 @@ def generate_key():
     return NBR_OF_FILE * NBR_OF_LINE
 
 with models.DAG('Bitcoin_fun',
-    schedule_interval=None,
+    schedule_interval='@hourly',
     description='Demo of DAG relaunch and dynamic task generation',
     catchup=False,
     max_active_runs=1,
@@ -94,4 +94,4 @@ with models.DAG('Bitcoin_fun',
         trigger_dag_id='Bitcoin_fun',
     )
 
-    load_file_to_GCS >> trigger_bitcoin_dag
+    # load_file_to_GCS >> trigger_bitcoin_dag
