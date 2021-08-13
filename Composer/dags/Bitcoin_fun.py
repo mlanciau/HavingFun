@@ -59,7 +59,7 @@ with models.DAG('Bitcoin_fun',
     load_file_to_GCS = GCSToGCSOperator(
         task_id='load-file-to-GCS',
         source_bucket = 'europe-west1-composer-dev-445e5e40-bucket',
-        source_object = 'data/bitcoin/*.json',
+        source_object = 'data/bitcoin/*.csv',
         destination_object = 'data/bitcoin/{{ ds_nodash }}/',
         destination_bucket = 'raw_data_dev',
         move_object = True
