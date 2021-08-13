@@ -7,7 +7,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.dates import days_ago
 
 import os
-import json
+import csv
 import time
 from bit import Key
 from random import randint
@@ -40,10 +40,12 @@ def generate_key():
             key = Key.from_hex(key_tmp)
             tmp_data.append((key_tmp, key.address))
             tmp_data_segwit.append((key_tmp, key.segwit_address))
-        with open(f"/home/airflow/gcs/{filename}.json", "w") as jsonFile:
-            json.dump(tmp_data, jsonFile)
-        with open(f"/home/airflow/gcs/{filename}_segwit.json", "w") as jsonFile:
-            json.dump(tmp_data_segwit, jsonFile)
+        with open(f"/home/airflow/gcs/{filename}.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(tmp_data)
+        with open(f"/home/airflow/gcs/{filename}_segwit.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(tmp_data_segwit)
     return NBR_OF_FILE * NBR_OF_LINE
 
 with models.DAG('Bitcoin_fun',
