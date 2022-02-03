@@ -21,8 +21,8 @@ default_dag_args = {
 }
 
 NBR_OF_STEP = 6
-NBR_OF_FILE = 10
-NBR_OF_LINE = 100000
+NBR_OF_FILE = 20
+NBR_OF_LINE = 20000
 
 def generate_key():
     os.makedirs(f"/home/airflow/gcs/data/bitcoin", exist_ok = True)
@@ -49,7 +49,7 @@ def generate_key():
     return NBR_OF_FILE * NBR_OF_LINE
 
 with models.DAG('Bitcoin_fun',
-    schedule_interval='@hourly',
+    schedule_interval=None, # '@hourly',
     description='Demo of DAG relaunch and dynamic task generation',
     catchup=False,
     max_active_runs=1,
@@ -58,10 +58,10 @@ with models.DAG('Bitcoin_fun',
 
     load_file_to_GCS = GCSToGCSOperator(
         task_id='load-file-to-GCS',
-        source_bucket = 'europe-west1-composer-dev-445e5e40-bucket',
+        source_bucket = 'europe-west1-demo-small-air-4fce7387-bucket',
         source_object = 'data/bitcoin/*.csv',
         destination_object = 'data/bitcoin/{{ ds_nodash }}/',
-        destination_bucket = 'raw_data_dev',
+        destination_bucket = 'raw_data_demo',
         move_object = True
     )
 
@@ -91,9 +91,9 @@ with models.DAG('Bitcoin_fun',
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
 
-    # trigger_bitcoin_dag = TriggerDagRunOperator(
-    #     task_id='trigger_bitcoin_dag',
-    #     trigger_dag_id='Bitcoin_fun',
-    # )
+    trigger_bitcoin_dag = TriggerDagRunOperator(
+        task_id='trigger_bitcoin_dag',
+        trigger_dag_id='Bitcoin_fun',
+    )
 
-    # load_file_to_GCS >> trigger_bitcoin_dag
+    load_file_to_GCS >> trigger_bitcoin_dag
