@@ -1,5 +1,6 @@
 from google.cloud import bigquery
 from google.cloud import storage
+from datetime import date
 import base64
 
 def load_to_bigquery(event, context):
@@ -8,7 +9,6 @@ def load_to_bigquery(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    table_id = "pso-orange-project.bitcoin.t_bitcoin"
     job_config = bigquery.LoadJobConfig(
         schema=[
             bigquery.SchemaField("c_key", "STRING"),
@@ -19,18 +19,28 @@ def load_to_bigquery(event, context):
         source_format=bigquery.SourceFormat.CSV,
     )
     storage_client = storage.Client()
+    bucket = storage_client.get_bucket('raw_data_demo')
     # pubsub_message = base64.b64decode(event['data']).decode('utf-8')
     client = bigquery.Client()
+    today = date.today()
     count = 0
-    for blob in storage_client.list_blobs('raw_data_demo', prefix='data/bitcoin'):
-        # if count > 10:
-        #     break
-        uri = f"gs://raw_data_demo/{blob.name}"
-        print(f"{uri} start")
-        load_job = client.load_table_from_uri(
-            uri, table_id, job_config=job_config
-        )
-        load_job.result()
-        blob.delete()
-        print(f"{uri} ok")
-        count += 1
+    iterator = bucket.list_blobs(delimiter='/', prefix='data/bitcoin/')
+    list(iterator)
+    for i in iterator.prefixes:
+        if not today.strftime("%Y%m%d") in i:
+            table_id = f"pso-orange-project.bitcoin.t_bitcoin_{i.split('/')[2]}"
+            tmp_iterator = bucket.list_blobs(delimiter='/', prefix=i)
+            list(tmp_iterator)
+            for folder in tmp_iterator.prefixes:
+                count += 1
+                uri = f'gs://raw_data_demo/{folder}*.csv'
+                print(f"{uri} start")
+                load_job = client.load_table_from_uri(
+                    uri, table_id, job_config=job_config
+                )
+                load_job.result()
+                print(f"{uri} load ok")
+                bucket.delete_blobs(blobs=list(bucket.list_blobs(prefix=folder)))
+                print(f"{folder} delete ok")
+                if count > 2:
+                    return 0

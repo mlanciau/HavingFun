@@ -8,6 +8,7 @@ from airflow.utils.dates import days_ago
 
 import os
 import csv
+import uuid
 import time
 from bit import Key
 from random import randint
@@ -21,8 +22,8 @@ default_dag_args = {
 }
 
 NBR_OF_STEP = 6
-NBR_OF_FILE = 20
-NBR_OF_LINE = 20000
+NBR_OF_FILE = 10
+NBR_OF_LINE = 40000
 
 def generate_key():
     os.makedirs(f"/home/airflow/gcs/data/bitcoin", exist_ok = True)
@@ -60,36 +61,46 @@ with models.DAG('Bitcoin_fun',
         task_id='load-file-to-GCS',
         source_bucket = 'europe-west1-demo-small-air-4fce7387-bucket',
         source_object = 'data/bitcoin/*.csv',
-        destination_object = 'data/bitcoin/{{ ds_nodash }}/',
+        destination_object = 'data/bitcoin/{{ ds_nodash }}/' + f'{uuid.uuid4()}/',
         destination_bucket = 'raw_data_demo',
         move_object = True
     )
 
     previous_task_1 = None
     previous_task_2 = None
+    previous_task_3 = None
 
     for step_nbr in range(NBR_OF_STEP):
         generate_bitcoin_key_1 = PythonOperator(
-            task_id = f'generate-bitcoin-key-{step_nbr}',
+            task_id = f'generate-bitcoin-key-{step_nbr + 100}',
             python_callable = generate_key,
         )
 
         generate_bitcoin_key_2 = PythonOperator(
-            task_id = f'generate-bitcoin-key-{step_nbr + NBR_OF_STEP}',
+            task_id = f'generate-bitcoin-key-{step_nbr + 200}',
+            python_callable = generate_key,
+        )
+
+        generate_bitcoin_key_3 = PythonOperator(
+            task_id = f'generate-bitcoin-key-{step_nbr + 300}',
             python_callable = generate_key,
         )
 
         if step_nbr == 0:
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
+            previous_task_3 = generate_bitcoin_key_3
         elif step_nbr == (NBR_OF_STEP - 1):
             previous_task_1 >> generate_bitcoin_key_1 >> load_file_to_GCS
             previous_task_2 >> generate_bitcoin_key_2 >> load_file_to_GCS
+            previous_task_3 >> generate_bitcoin_key_3 >> load_file_to_GCS
         else:
             previous_task_1 >> generate_bitcoin_key_1
             previous_task_2 >> generate_bitcoin_key_2
+            previous_task_3 >> generate_bitcoin_key_3
             previous_task_1 = generate_bitcoin_key_1
             previous_task_2 = generate_bitcoin_key_2
+            previous_task_3 = generate_bitcoin_key_3
 
     trigger_bitcoin_dag = TriggerDagRunOperator(
         task_id='trigger_bitcoin_dag',
